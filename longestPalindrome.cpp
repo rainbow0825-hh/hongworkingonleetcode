@@ -39,11 +39,6 @@ public:
                   currentLongestLen = currentLongestLen + 2;
                   continue;
                }
-               if (currentLongestLen > longestLen)
-               {
-                  startPos = i - j + 1;
-                  longestLen = currentLongestLen;
-               }
                break;
             }
             if (currentLongestLen > longestLen)
@@ -59,15 +54,17 @@ public:
    }
 };
 
-//int main()
-//{
-//   vector<string> s = { "bb", "babad", "cbbd", "abcbabcb", "baab", "bananas", "ccc", "aaaabaaa" };
-//
-//   Solution solution;
-//   for (auto iter = s.begin(); iter != s.end(); ++iter)
-//   {
-//      cout << "s: " << iter->c_str() << endl;
-//      cout << "ans: " << solution.longestPalindrome(*iter).c_str() << endl;
-//   }
-//   return 0;
-//}
+int main()
+{
+   //vector<string> s = { "bb", "babad", "cbbd", "abcbabcb", "baab", "bananas", "ccc", "aaaabaaa" };
+
+   vector<string> s = { "cbbd" };
+
+   Solution solution;
+   for (auto iter = s.begin(); iter != s.end(); ++iter)
+   {
+      cout << "s: " << iter->c_str() << endl;
+      cout << "ans: " << solution.longestPalindrome(*iter).c_str() << endl;
+   }
+   return 0;
+}
