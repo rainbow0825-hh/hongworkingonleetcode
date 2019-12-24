@@ -11,48 +11,51 @@ class Solution
 {
 public:
    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
-      if (nums1.empty())
-      {
-         return findMedianSortedArray(nums2);
-      }
-
-      if (nums2.empty())
-      {
-         return findMedianSortedArray(nums1);
-      }
-
+      size_t num1 = 0;
       size_t totalSize = nums1.size() + nums2.size();
       size_t leftTotal = (size_t)floor(totalSize / 2);
-      size_t min1 = 0, max1 = min(nums1.size(), leftTotal);
+      if (nums2.empty())
+      {
+         num1 = leftTotal;
+      }
+      else if (!nums1.empty())
+      {
+         size_t upperBound_max = min(nums1.size(), leftTotal);
+         size_t upperBound = upperBound_max;
+         size_t lowerBound = (nums2.size() >= leftTotal) ? 0 : leftTotal - nums2.size();
 
-      findBoundaries(nums1, nums2, min1, max1, leftTotal);
+         num1 = findBoundaries(nums1, nums2, lowerBound, upperBound, upperBound_max, leftTotal);
+      }
 
       int leftMax = 0;
-      if (max1 == 0)
+      if (leftTotal)
       {
-         leftMax = nums2[leftTotal - max1 - 1];
-      }
-      else if (max1 == leftTotal)
-      {
-         leftMax = nums1[max1 - 1];
-      }
-      else
-      {
-         leftMax = max(nums1[max1 - 1], nums2[leftTotal - max1 - 1]);
+         if (num1 == 0)
+         {
+            leftMax = nums2[leftTotal - num1 - 1];
+         }
+         else if (num1 == leftTotal)
+         {
+            leftMax = nums1[num1 - 1];
+         }
+         else
+         {
+            leftMax = max(nums1[num1 - 1], nums2[leftTotal - num1 - 1]);
+         }
       }
 
       int rightMin = 0;
-      if (max1 == nums1.size())
+      if (num1 == nums1.size())
       {
-         rightMin = nums2[leftTotal - max1];
+         rightMin = nums2[leftTotal - num1];
       }
-      else if (leftTotal - max1 == nums2.size())
+      else if (leftTotal - num1 == nums2.size())
       {
-         rightMin = nums1[max1];
+         rightMin = nums1[num1];
       }
       else
       {
-         rightMin = min(nums1[max1], nums2[leftTotal - max1]);
+         rightMin = min(nums1[num1], nums2[leftTotal - num1]);
       }
 
       if (totalSize % 2)
@@ -63,57 +66,88 @@ public:
       {
          return ((double)(leftMax + rightMin)) / 2;
       }
-      
-      return 0;
    }
 
 private:
-   void findBoundaries(vector<int>& nums1, vector<int>& nums2, size_t& min1, size_t& max1, int leftTotal)
+   size_t findBoundaries(vector<int>& nums1, vector<int>& nums2, size_t& lowerBound, size_t& upperBound, const size_t upperBound_max, const size_t leftTotal)
    {
-      size_t num1 = max1;
+      if (lowerBound == upperBound)
+      {
+         return upperBound;
+      }
+
+      size_t num1 = (lowerBound + upperBound)/2 + 1;
       size_t num2 = leftTotal - num1;
 
-      if (num1 == 0)
+      if (num1 > 0 && num2 < nums2.size() && nums1[num1 - 1] > nums2[num2])
       {
-         return;
+         upperBound = num1 - 1;
       }
-
-      if (num1 == nums1.size() && nums1[num1 - 1] <= nums2[num2])
+      else if (num1 < upperBound_max && num2 > 0 && nums1[num1] < nums2[num2 - 1])
       {
-         return;
-      }
-
-      if (num2 != nums2.size() && nums1[num1 - 1] > nums2[num2])
-      {
-         if (leftTotal > nums2.size())
-         {
-            max1 = max((min(max1 - 1, (size_t)floor(max1 / 2) + 1)), leftTotal - nums2.size());
-         }
-         else
-         {
-            max1 = (min(max1 - 1, (size_t)floor(max1 / 2) + 1));
-         }
-      }
-      else if ((num2 > 0) && nums1[num1] < nums2[num2 - 1])
-      {
-         min1 = (size_t)floor(max1 / 2);
+         lowerBound = num1 + 1;
       }
       else
       {
-         return;
+         return num1;
       }
 
-      findBoundaries(nums1, nums2, min1, max1, leftTotal);
-   }
-
-   double findMedianSortedArray(vector<int>& nums)
-   {
-      if (nums.size() % 2) {
-         return nums[(size_t)floor(nums.size() / 2)];
-      }
-      else
-      {
-         return ((double)nums[nums.size() / 2 - 1] + (double)nums[nums.size() / 2]) / 2;
-      }
+      return findBoundaries(nums1, nums2, lowerBound, upperBound, upperBound_max, leftTotal);
    }
 };
+
+struct TestData
+{
+   TestData(vector<int>&& nums1, vector<int>&& nums2, const double median):
+      nums1(nums1), nums2(nums2), median(median)
+   {}
+
+   vector<int> nums1;
+   vector<int> nums2;
+   const double median;
+};
+
+//int main()
+//{
+//   Solution solution;
+//
+//   vector<TestData> testData;
+//   testData.push_back(TestData({ 3, 4 }, {}, 3.5));
+//   testData.push_back(TestData({ 2, 3, 5, 6 }, { 1, 4 }, 3.5));
+//   testData.push_back(TestData({ 3 }, { -2, -1 }, -1));
+//   testData.push_back(TestData({ 2, 3 }, { 1, 4 }, 2.5));
+//   testData.push_back(TestData({ 2, 3, 4, 5, 7, 8, 10 }, { 1, 6 }, 5));
+//   testData.push_back(TestData({ 1, 3 }, { 2 }, 2));
+//   testData.push_back(TestData({ 1, 2 }, { 3, 4 }, 2.5));
+//   testData.push_back(TestData({ }, { 3, 4 }, 3.5));
+//   testData.push_back(TestData({ 3, 4 }, { }, 3.5));
+//   testData.push_back(TestData({ }, { 1 }, 1));
+//   testData.push_back(TestData({ 2, 3, 4, 5, 6, 7, 8, 9, 10 }, { 1 }, 5.5));
+//
+//
+//   for (auto iter = testData.begin(); iter != testData.end(); ++iter)
+//   {
+//      double ans = solution.findMedianSortedArrays(iter->nums1, iter->nums2);
+//      if (ans != iter->median)
+//      {
+//         cout << "nums1: ";
+//         for (int i = 0; i < iter->nums1.size(); ++i)
+//         {
+//            cout << iter->nums1[i] << " ";
+//         }
+//         cout << endl;
+//
+//         cout << "nums2: ";
+//         for (int i = 0; i < iter->nums2.size(); ++i)
+//         {
+//            cout << iter->nums2[i] << " ";
+//         }
+//         cout << endl;
+//
+//         cout << "expected median: " << to_string(iter->median) << endl;
+//         cout << "ans: " << to_string(ans) << endl;
+//      }
+//   }
+//
+//   return 0;
+//}
