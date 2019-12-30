@@ -15,7 +15,8 @@ public:
 
         size_t left = 0;
         size_t right = height.size() - 1;
-        int maxArea = min(height[left], height[right]) * (right - left);
+        int minHeight = min(height[left], height[right]);
+        int maxArea = minHeight * (right - left);
 
         while(1)
         {
@@ -25,15 +26,16 @@ public:
             }
             if (height[left] < height[right])
             {
-                int minHeight = height[left];
                 for (++left; left < right; ++left)
                 {
                     if (height[left] > minHeight)
                     {
-                        int currentArea = min(height[left], height[right]) * (right - left);
+                        int currentMinHeight = min(height[left], height[right]);
+                        int currentArea = currentMinHeight * (right - left);
                         if (currentArea > maxArea)
                         {
                             maxArea = currentArea;
+                            minHeight = currentMinHeight;
                         }
                     }
                     if (height[left] >= height[right])
@@ -48,15 +50,16 @@ public:
             }
             else if (height[right] < height[left])
             {
-                int minHeight = height[right];
                 for (--right; right > left; --right)
                 {
                     if (height[right] > minHeight)
                     {
+                        int currentMinHeight = min(height[left], height[right]);
                         int currentArea = min(height[left], height[right]) * (right - left);
                         if (currentArea > maxArea)
                         {
                             maxArea = currentArea;
+                            minHeight = currentMinHeight;
                         }
                     }
                     if (height[right] >= height[left])
@@ -75,10 +78,12 @@ public:
                 {
                     break;
                 }
-                int currentArea = min(height[left], height[right]) * (right - left);
+                int currentMinHeight = min(height[left], height[right]);
+                int currentArea = currentMinHeight * (right - left);
                 if (currentArea > maxArea)
                 {
                     maxArea = currentArea;
+                    minHeight = currentMinHeight;
                 }
             }
         }
