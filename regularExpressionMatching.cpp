@@ -5,6 +5,7 @@
 #include <vector>
 #include <assert.h>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -12,12 +13,37 @@ class Solution
 {
 public:
    bool isMatch(string s, string p) {
+      memo.clear();
       return isSubStringMatch(s, p);
    }
 
 private:
+   map<pair<string, string>, bool> memo;
+
+   bool isSubStringMatch(const string& s, const string& p, const size_t s_index, const size_t p_index)
+   {
+      string s_sub(&s[s_index]);
+      string p_sub(&p[p_index]); 
+      auto key = make_pair(s_sub, p_sub);
+      auto iter = memo.find(key);
+      if (iter != memo.end())
+      {
+         return iter->second;
+      }
+      bool isMatch = isSubStringMatch(s_sub, p_sub);
+      memo[key] = isMatch;
+      return isMatch;
+
+      // return isSubStringMatch(&s[s_index], &p[p_index]);
+   }
+
    bool isSubStringMatch(const string& s, const string& p)
    {
+      if (p.empty() && !s.empty())
+      {
+         return false;
+      }
+
       size_t nextIndexInS = 0;
       size_t nextIndexInP = 0;
       for (size_t i = 0; i < p.length() && nextIndexInP < p.length(); ++i)
@@ -52,6 +78,12 @@ private:
             return false;
          }
 
+         if (nextIndexInS == s.length())
+         {
+            nextIndexInP += 2;
+            continue;
+         }
+
          char previousChar = p[i - 1];
          if (previousChar == '.')
          {
@@ -66,7 +98,7 @@ private:
                {
                   continue;
                }
-               if (isSubStringMatch(&s[j], &p[i + 1]))
+               if (isSubStringMatch(s, p, j, i + 1))
                {
                   return true;
                }
@@ -74,46 +106,31 @@ private:
             return false;
          }
 
-         if (nextIndexInS == s.length())
+         if (isSubStringMatch(s, p, nextIndexInS, i + 1))
          {
-            nextIndexInP += 2;
-            continue;
+            return true;
          }
 
-         if (s[nextIndexInS] != previousChar)
+         size_t next_s = nextIndexInS;
+         if (s[next_s] != previousChar)
          {
-            size_t next_p = i + 1;
-            for (; next_p < p.length(); ++next_p)
-            {
-               if (p[next_p] != previousChar && p[next_p] != '*')
-               {
-                  break;
-               }
-            }
-
-            if (next_p != p.length())
-            {
-               return isSubStringMatch(&s[nextIndexInS], &p[next_p]);
-            }
+            return false;
          }
-         else
+
+         for (; next_s != s.length(); ++next_s)
          {
-            size_t next_s = nextIndexInS;
-            for (; next_s != s.length(); ++next_s)
+            if (s[next_s] != previousChar)
             {
-               if (isSubStringMatch(&s[next_s], &p[i + 1]))
-               {
-                  return true;
-               }
-               if (s[next_s] != previousChar)
-               {
-                  break;
-               }
+               break;
             }
-            if (next_s == s.length() && i + 1 == p.length())
+            if (isSubStringMatch(s, p, next_s + 1, i - 1))
             {
                return true;
             }
+         }
+         if (next_s == s.length() && i + 1 == p.length())
+         {
+            return true;
          }
          return false;
       }
@@ -154,35 +171,41 @@ struct Test
 int main()
 {
    vector<Test> tests;
-   // tests.push_back(Test("aa", "a", false));
-   // tests.push_back(Test("aa", "a*", true));
-   // tests.push_back(Test("ab", ".*", true));
-   // tests.push_back(Test("aab", "c*a*b", true));
-   // tests.push_back(Test("mississippi", "mis*is*p*.", false));
-   // tests.push_back(Test("mississippi", "mis*is*ip*.", true));
-   // tests.push_back(Test("bcaba", ".*a*.", true));
-   // tests.push_back(Test("aaa", "ab*a*c*a", true));
-   // tests.push_back(Test("a", "ab*", true));
-   // tests.push_back(Test("ab", ".*..", true));
-   // tests.push_back(Test("ab", ".*...", false));
-   // tests.push_back(Test("abc", ".*..", true));
-   // tests.push_back(Test("ab", ".*..c*", true));
-   // tests.push_back(Test("aaaaaaaaaaaaab", "a*a*a*a*a*a*a*a*a*a*c", false));
-   // tests.push_back(Test("b", "a*a*c", false));
-   // tests.push_back(Test("", "c*c*", true));
-   // tests.push_back(Test("", "..*", false));
+   tests.push_back(Test("aa", "a", false));
+   tests.push_back(Test("aa", "a*", true));
+   tests.push_back(Test("ab", ".*", true));
+   tests.push_back(Test("aab", "c*a*b", true));
+   tests.push_back(Test("mississippi", "mis*is*p*.", false));
+   tests.push_back(Test("sipp", "s*p*", false));
+   tests.push_back(Test("mississippi", "mis*is*ip*.", true));
+   tests.push_back(Test("bcaba", ".*a*.", true));
+   tests.push_back(Test("aaa", "ab*a*c*a", true));
+   tests.push_back(Test("a", "ab*", true));
+   tests.push_back(Test("ab", ".*..", true));
+   tests.push_back(Test("ab", ".*...", false));
+   tests.push_back(Test("abc", ".*..", true));
+   tests.push_back(Test("ab", ".*..c*", true));
+   tests.push_back(Test("aaaaaaaaaaaaab", "a*a*a*a*a*a*a*a*a*a*c", false));
+   tests.push_back(Test("b", "a*a*c", false));
+   tests.push_back(Test("", "c*c*", true));
+   tests.push_back(Test("", "..*", false));
    tests.push_back(Test("aabcbcbcaccbcaabc", ".*a*aa*.*b*.c*.*a*", true));
+   tests.push_back(Test("abcaaaaaaabaabcabac", ".*ab.a.*a*a*.*b*b*", true));
+   tests.push_back(Test("aaaaaabaabcabac", ".*b*", true));
 
    Solution solution;
    for (auto iter = tests.begin(); iter != tests.end(); ++iter)
    {
+      cout << "s: " << iter->s.c_str() << "\n" << "p: " << iter->p.c_str() << endl;
+      cout << endl;
+
       bool ans = solution.isMatch(iter->s, iter->p);
       if ( ans != iter->match)
       {
          cout << "wrong answer!\n";
-         cout << "s: " << iter->s.c_str() << "\n" << "p: " << iter->p.c_str() << "\n" << endl;
          cout << "expected: " << iter->match << endl;
          cout << "ans: " << ans << endl;
+         cout << endl;
       }
    }
 
